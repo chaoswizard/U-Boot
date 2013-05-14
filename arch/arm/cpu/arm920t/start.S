@@ -39,6 +39,7 @@
 
 .globl _start
 _start:	b	start_code
+#ifndef CONFIG_NAND_SPL           //for nand_spl complie, add by pingfengluo@gmail.com 
 	ldr	pc, _undefined_instruction
 	ldr	pc, _software_interrupt
 	ldr	pc, _prefetch_abort
@@ -54,6 +55,10 @@ _data_abort:		.word data_abort
 _not_used:		.word not_used
 _irq:			.word irq
 _fiq:			.word fiq
+_pad:                	.word 0x12345678 /* now 16*4=64 */
+#else
+       . = _start + 64
+#endif 
 
 	.balignl 16,0xdeadbeef
 
@@ -190,6 +195,7 @@ copyex:
 	bl	cpu_init_crit
 #endif
 
+#ifndef CONFIG_NAND_SPL
 	bl	_main
 
 /*------------------------------------------------------------------------------*/
@@ -255,6 +261,8 @@ fixnext:
 	cmp	r2, r3
 	blo	fixloop
 #endif
+
+#endif /* ndef CONFIG_NAND_SPL */
 
 relocate_done:
 
@@ -324,6 +332,7 @@ cpu_init_crit:
  *************************************************************************
  */
 
+#ifndef CONFIG_NAND_SPL   //for nand_spl complie, add by pingfengluo.github.com
 @
 @ IRQ stack frame.
 @
@@ -412,7 +421,6 @@ cpu_init_crit:
 	.macro get_fiq_stack			@ setup FIQ stack
 	ldr	sp, FIQ_STACK_START
 	.endm
-
 /*
  * exception handlers
  */
@@ -478,3 +486,4 @@ fiq:
 	bl	do_fiq
 
 #endif
+#endif 
