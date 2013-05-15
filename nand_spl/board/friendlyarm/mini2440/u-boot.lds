@@ -1,9 +1,11 @@
 /*
+ * Copyright (c) 2004-2008 Texas Instruments
+ *
  * (C) Copyright 2002
  * Gary Jennejohn, DENX Software Engineering, <garyj@denx.de>
- *
- * (C) Copyright 2008
- * Guennadi Liakhovetki, DENX Software Engineering, <lg@denx.de>
+ * 
+ * (C) Copyright 2013
+ *  pingfengluo.github.com pingfengluo@gmail.com
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -15,7 +17,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -32,46 +34,66 @@ SECTIONS
 	. = 0x00000000;
 
 	. = ALIGN(4);
-	.text      :
+	.text :
 	{
-	  start.o	(.text)
-	  nand_boot.o	(.text)
-
-	  *(.text)
+		__image_copy_start = .;
+	        start.o      (.text*)
+		nand_boot.o  (.text*)
+		*(.text*)
 	}
 
 	. = ALIGN(4);
 	.rodata : { *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.rodata*))) }
 
 	. = ALIGN(4);
-	.data : { *(.data) }
+	.data : {
+		*(.data*)
+	}
 
 	. = ALIGN(4);
-	.got : { *(.got) }
 
-	__u_boot_cmd_start = .;
-	.u_boot_cmd : { *(.u_boot_cmd) }
-	__u_boot_cmd_end = .;
+	. = .;
 
-	. = ALIGN(4);
+	__image_copy_end = .;
 
 	.rel.dyn : {
-	__rel_dyn_start = .;
-	*(.rel*)
-	__rel_dyn_end = .;
+		__rel_dyn_start = .;
+		*(.rel*)
+		__rel_dyn_end = .;
 	}
 
 	.dynsym : {
-	__dynsym_start = .;
-	*(.dynsym)
+		__dynsym_start = .;
+		*(.dynsym)
 	}
 
 	_end = .;
 
 	.bss __rel_dyn_start (OVERLAY) : {
-	__bss_start = .;
-	*(.bss)
-	. = ALIGN(4);
-	__bss_end__ = .;
+		__bss_start = .;
+		*(.bss*)
+		 . = ALIGN(4);
+		__bss_end = .;
 	}
+
+	/DISCARD/ : { *(.dynstr*) }
+	/DISCARD/ : { *(.dynamic*) }
+	/DISCARD/ : { *(.plt*) }
+	/DISCARD/ : { *(.interp*) }
+	/DISCARD/ : { *(.gnu*) }
 }
+
+#if defined(CONFIG_SPL_MAX_SIZE)
+ASSERT(__image_copy_end - __image_copy_start < (CONFIG_SPL_MAX_SIZE), \
+	"SPL image too big");
+#endif
+
+#if defined(CONFIG_SPL_BSS_MAX_SIZE)
+ASSERT(__bss_end - __bss_start < (CONFIG_SPL_BSS_MAX_SIZE), \
+	"SPL image BSS too big");
+#endif
+
+#if defined(CONFIG_SPL_MAX_FOOTPRINT)
+ASSERT(__bss_end - _start < (CONFIG_SPL_MAX_FOOTPRINT), \
+	"SPL image plus BSS too big");
+#endif

@@ -47,7 +47,6 @@
 /u-boot.dtb
 /u-boot.sb
 /u-boot.geany
-/nand_spl
 
 #
 # Generated files
