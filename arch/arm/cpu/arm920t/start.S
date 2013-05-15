@@ -4,6 +4,7 @@
  *  Copyright (c) 2001	Marius Gröger <mag@sysgo.de>
  *  Copyright (c) 2002	Alex Züpke <azu@sysgo.de>
  *  Copyright (c) 2002	Gary Jennejohn <garyj@denx.de>
+ *  Copyright (C) 2013  pingfengluo.github.com <pingfengluo@gmail.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -179,12 +180,34 @@ copyex:
 	ldr	r0, =INTSUBMSK
 	str	r1, [r0]
 # endif
+# if defined(CONFIG_S3C2440)
+	ldr	r1, =0x7fff
+	ldr	r0, =INTSUBMSK
+	str	r1, [r0]
+#define CLK_CTL_BASE	0x4C000000	
+#define MDIV_405	0x7f << 12	
+#define PSDIV_405	0x21		
+	/* FCLK:HCLK:PCLK = 1:4:8 */
+	ldr	r0, =CLKDIVN
+	mov	r1, #5
+	str	r1, [r0]
 
+	mrc	p15, 0, r1, c1, c0, 0	
+	orr	r1, r1, #0xc0000000		
+	mcr	p15, 0, r1, c1, c0, 0	
+	
+	
+	mov	r1, #CLK_CTL_BASE	
+	mov	r2, #MDIV_405	
+	add	r2, r2, #PSDIV_405	
+	str	r2, [r1, #0x04]		/* MPLL CON */
+# else
 	/* FCLK:HCLK:PCLK = 1:2:4 */
 	/* default FCLK is 120 MHz ! */
 	ldr	r0, =CLKDIVN
 	mov	r1, #3
 	str	r1, [r0]
+# endif
 #endif	/* CONFIG_S3C24X0 */
 
 	/*
