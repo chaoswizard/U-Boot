@@ -1,6 +1,16 @@
 /*
- * (C) Copyright 2004, Freescale Inc.
- * TsiChung Liew, Tsi-Chung.Liew@freescale.com
+ * Copyright (c) 2013, Google Inc.
+ *
+ * Copyright (C) 2011
+ * Corscience GmbH & Co. KG - Simon Schwarz <schwarz@corscience.de>
+ *  - Added prep subcommand support
+ *  - Reorganized source - modeled after powerpc version
+ *
+ * (C) Copyright 2002
+ * Sysgo Real-Time Solutions, GmbH <www.elinos.com>
+ * Marius Groeger <mgroeger@sysgo.de>
+ *
+ * Copyright (C) 2001  Erik Mouw (J.A.K.Mouw@its.tudelft.nl)
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -22,47 +32,21 @@
  */
 
 #include <common.h>
-#include <mpc8220.h>
-#include <asm/processor.h>
-#include <asm/mmu.h>
-#include <pci.h>
-#include <netdev.h>
+#include <fdt_support.h>
 
-phys_size_t initdram (int board_type)
+DECLARE_GLOBAL_DATA_PTR;
+
+int arch_fixup_memory_node(void *blob)
 {
-	ulong size;
+	bd_t *bd = gd->bd;
+	int bank;
+	u64 start[CONFIG_NR_DRAM_BANKS];
+	u64 size[CONFIG_NR_DRAM_BANKS];
 
-	size = dramSetup ();
+	for (bank = 0; bank < CONFIG_NR_DRAM_BANKS; bank++) {
+		start[bank] = bd->bi_dram[bank].start;
+		size[bank] = bd->bi_dram[bank].size;
+	}
 
-	return get_ram_size(CONFIG_SYS_SDRAM_BASE, size);
-}
-
-int checkboard (void)
-{
-	puts ("Board: Sorcery-C MPC8220\n");
-
-	return 0;
-}
-
-#if defined(CONFIG_PCI)
-/*
- * Initialize PCI devices, report devices found.
- */
-static struct pci_controller hose;
-
-#endif /* CONFIG_PCI */
-
-void pci_init_board (void)
-{
-#ifdef CONFIG_PCI
-	extern void pci_mpc8220_init (struct pci_controller *hose);
-	pci_mpc8220_init (&hose);
-#endif /* CONFIG_PCI */
-}
-
-int board_eth_init(bd_t *bis)
-{
-	/* Initialize built-in FEC first */
-	cpu_eth_init(bis);
-	return pci_eth_init(bis);
+	return fdt_fixup_memory_banks(blob, start, size, CONFIG_NR_DRAM_BANKS);
 }
