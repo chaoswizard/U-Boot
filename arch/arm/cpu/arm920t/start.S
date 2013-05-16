@@ -220,7 +220,25 @@ copyex:
 
 #ifndef CONFIG_NAND_SPL
 	bl	_main
+/*LED for debug*/
+#if defined(CONFIG_MINI2440_LED) && 0
+#define GPIO_CTL_BASE 0x56000000
+#define oGPIO_B 0x10
+#define oGPIO_CON 0x0
+#define oGPIO_DAT 0x4
+#define oGPIO_UP 0x8
+	mov	r1, #GPIO_CTL_BASE
+	add	r1, r1, #oGPIO_B
+	ldr	r2, = 0x295551
+	str	r2, [r1, #oGPIO_CON]
+	mov	r2, #0xff
+	str	r2, [r1, #oGPIO_UP]
+	ldr	r2, =0x000			/* GPB5 ON */
+	str	r2, [r1, #oGPIO_DAT]
 
+loop_led:
+	b loop_led
+#endif
 /*------------------------------------------------------------------------------*/
 
 /*
