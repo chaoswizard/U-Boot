@@ -289,6 +289,19 @@ relocate_done:
 	mov	pc, lr
 #endif /* ndef CONFIG_NAND_SPL */
 
+/*
+ *call the nand_boot function for nand_spl 
+ *if we are run from nandflash
+ */
+#ifdef CONFIG_NAND_SPL
+
+	ldr	sp, =0x33200000
+	ldr     r0, _nand_boot_ofs
+	mov	pc, r0
+
+_nand_boot_ofs:
+	.word nand_boot
+# endif
 
 _rel_dyn_start_ofs:
 	.word __rel_dyn_start - _start
