@@ -285,11 +285,10 @@ fixnext:
 	blo	fixloop
 #endif
 
+relocate_done:
+	mov	pc, lr
 #endif /* ndef CONFIG_NAND_SPL */
 
-relocate_done:
-
-	mov	pc, lr
 
 _rel_dyn_start_ofs:
 	.word __rel_dyn_start - _start
